@@ -1,6 +1,7 @@
 import torch
 from transformers import AutoModelForSpeechSeq2Seq, AutoProcessor, pipeline
 from datasets import load_dataset
+from pydub import AudioSegment
 
 
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -24,6 +25,10 @@ pipe = pipeline(
     device=device,
 )
 
-result = model.transcribe("test-audio.m4a")
+audio_file = "test-audio.m4a"
+new_audio_file = "test-audio.mp3"
+audio = AudioSegment.from_file(audio_file)
+audio.export(new_audio_file, format="mp3")
+result = model.transcribe(new_audio_file)
 
 print(f' The text in audio file: \n {result["text"]}')
