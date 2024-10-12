@@ -1,6 +1,5 @@
 "use client";
 
-import { SpeechToText } from "@google-cloud/speech";
 import { useState, useRef } from "react";
 
 export default function AudioRecorder() {
@@ -32,35 +31,14 @@ export default function AudioRecorder() {
     if (!audioBlob) return;
 
     try {
-      const client = new SpeechToText();
-      const buffer = audioBlob.stream();
+      const formData = new FormData();
+      formData.append("audio", audioBlob);
 
-      const request = {
-        audio: {
-          content: buffer,
-        },
-        config: {
-          encoding: "LINEAR16",
-          sampleRateHertz: 16000,
-          languageCode: "en-US", // Adjust language code as needed
-        },
-      };
-
-      client
-        .recognize(request)
-        .then((results) => {
-          const transcription =
-            results[0].results[0].alternatives[0].transcript;
-          console.log("Transcription:", transcription);
-        })
-        .catch((err) => {
-          console.error("Error recognizing audio:", err);
-        });
-
-      // setTranscript(result.transcription); // Set the received transcription
-    } catch (error) {
-      console.error("Error uploading file:", error);
-    }
+      await fetch("/api/speech", {
+        method: "POST",
+        body: formData,
+      });
+    } catch {}
   };
 
   return (
