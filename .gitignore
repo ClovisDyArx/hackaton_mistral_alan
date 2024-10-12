@@ -1,4 +1,5 @@
-# Created by .ignore support plugin (hsz.mobi)
+pyrightconfig.json
+
 ### Python template
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -182,4 +183,4 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 # idea folder, uncomment if you don't need it
-.idea
+# .idea
