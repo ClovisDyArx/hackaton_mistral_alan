@@ -30,46 +30,23 @@ export default function AudioRecorder() {
   const sendAudio = async () => {
     if (!audioBlob) return;
 
-    const formData = new FormData();
-    const uniqueFileName = `recording_${Date.now()}.wav`; // TODO: find a better way to generate unique file names
-    formData.append('audio', audioBlob, uniqueFileName);
-
     try {
-      const response = await fetch('app/patient/appointment/api/upload-audio', {
-        method: 'POST',
+      const formData = new FormData();
+      formData.append("file", audioBlob, "audio.wav"); // Name the file
+
+      const response = await fetch("http://127.0.0.1:8000/transcribe/", {
+        method: "POST",
         body: formData,
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        const audioFilePath = data.filePath; // Get the file path returned by the server
-        await fetchTranscript(audioFilePath);
-      } else {
-        console.error('Error uploading audio');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    } catch (error) {
-      console.error('Error sending audio:', error);
-    }
-  };
 
-  const fetchTranscript = async (filePath: string) => {
-    try {
-      const response = await fetch('app/patient/appointment/api/get-transcript', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ audioPath: filePath, language: 'en' }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setTranscript(data.transcript);
-      } else {
-        console.error('Error fetching transcript');
-      }
+      const result = await response.json();
+      setTranscript(result.transcription); // Set the received transcription
     } catch (error) {
-      console.error('Error fetching transcript:', error);
+      console.error("Error uploading file:", error);
     }
   };
 
