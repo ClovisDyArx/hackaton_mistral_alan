@@ -24,8 +24,6 @@ pipe = pipeline(
     device=device,
 )
 
-dataset = load_dataset("distil-whisper/librispeech_long", "clean", split="validation")
-sample = dataset[0]["audio"]
+result = model.transcribe("test-audio.m4a")
 
-result = pipe(sample)
-print(result["text"])
+print(f' The text in audio file: \n {result["text"]}')
