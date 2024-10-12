@@ -35,7 +35,7 @@ export default function AudioRecorder() {
     formData.append('audio', audioBlob, uniqueFileName);
 
     try {
-      const response = await fetch('/patient/appointment/api/upload-audio', {
+      const response = await fetch('app/patient/appointment/api/upload-audio', {
         method: 'POST',
         body: formData,
       });
@@ -54,7 +54,7 @@ export default function AudioRecorder() {
 
   const fetchTranscript = async (filePath: string) => {
     try {
-      const response = await fetch('/patient/appointment/api/get-transcript', {
+      const response = await fetch('app/patient/appointment/api/get-transcript', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
