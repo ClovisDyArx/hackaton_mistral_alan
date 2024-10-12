@@ -25,10 +25,7 @@ pipe = pipeline(
     device=device,
 )
 
-audio_file = "test-audio.m4a"
 new_audio_file = "test-audio.mp3"
-audio = AudioSegment.from_file(audio_file)
-audio.export(new_audio_file, format="mp3")
 result = model.transcribe(new_audio_file)
 
 print(f' The text in audio file: \n {result["text"]}')
