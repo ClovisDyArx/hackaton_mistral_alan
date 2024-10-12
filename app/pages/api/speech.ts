@@ -1,13 +1,12 @@
 import type { NextApiRequest, NextApiResponse } from "next";
-import { SpeechToText } from "@google-cloud/speech";
+import SpeechToText from "@google-cloud/speech";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  console.log("prout proput");
-  console.log(req);
-  const client = new SpeechToText();
+  const audioBlob = req.body.audio;
+  const client = new SpeechToText.SpeechClient();
   const buffer = audioBlob.stream();
 
   const request = {
