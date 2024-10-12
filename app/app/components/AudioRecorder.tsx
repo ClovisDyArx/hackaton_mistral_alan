@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef } from 'react';
+import { SpeechToText } from "@google-cloud/speech";
+import { useState, useRef } from "react";
 
 export default function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -18,7 +19,7 @@ export default function AudioRecorder() {
       mediaRecorderRef.current.start();
       setIsRecording(true);
     } catch (error) {
-      console.error('Error accessing microphone:', error);
+      console.error("Error accessing microphone:", error);
     }
   };
 
@@ -31,26 +32,32 @@ export default function AudioRecorder() {
     if (!audioBlob) return;
 
     try {
-      const formData = new FormData();
-      formData.append("file", audioBlob, "audio.wav"); // Name the file
+      const client = new SpeechToText();
+      const buffer = audioBlob.stream();
 
+      const request = {
+        audio: {
+          content: buffer,
+        },
+        config: {
+          encoding: "LINEAR16",
+          sampleRateHertz: 16000,
+          languageCode: "en-US", // Adjust language code as needed
+        },
+      };
 
-      const response = await fetch("http://localhost:8080/transcribe", {
-        method: "POST",
-        body: formData,
-        mode: "no-cors"
-      });
+      client
+        .recognize(request)
+        .then((results) => {
+          const transcription =
+            results[0].results[0].alternatives[0].transcript;
+          console.log("Transcription:", transcription);
+        })
+        .catch((err) => {
+          console.error("Error recognizing audio:", err);
+        });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-
-      console.log("result");
-      console.log(result);
-
-      setTranscript(result.transcription); // Set the received transcription
+      // setTranscript(result.transcription); // Set the received transcription
     } catch (error) {
       console.error("Error uploading file:", error);
     }
@@ -58,13 +65,27 @@ export default function AudioRecorder() {
 
   return (
     <div className="flex flex-col items-center space-y-4">
-      <button className="btn-primary" onClick={isRecording ? stopRecording : startRecording}>
-        {isRecording ? 'Stop Recording' : 'Start Recording'}
+      <button
+        className="btn-primary"
+        onClick={isRecording ? stopRecording : startRecording}
+      >
+        {isRecording ? "Stop Recording" : "Start Recording"}
       </button>
-      <button className="btn-secondary" onClick={sendAudio} disabled={!audioBlob}>
+      <button
+        className="btn-secondary"
+        onClick={sendAudio}
+        disabled={!audioBlob}
+      >
         Send Audio
       </button>
-      {transcript && <textarea className="mt-4 w-full p-2 border" rows={5} value={transcript} readOnly />}
+      {transcript && (
+        <textarea
+          className="mt-4 w-full p-2 border"
+          rows={5}
+          value={transcript}
+          readOnly
+        />
+      )}
     </div>
   );
 }
