@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile
+import uvicorn
 import whisper
 import io
 
@@ -28,15 +29,5 @@ def get_transcribe(audio: str, language: str = 'en'):
     return transcript["text"]
 
 
-"""
-# Example usage : local
 if __name__ == "__main__":
-    audio_file = sys.argv[1]
-    result = get_transcribe(audio=audio_file)
-    print('-'*50)
-    print(result)
-"""
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    uvicorn.run(app, host="0.0.0.0", port=5000)
