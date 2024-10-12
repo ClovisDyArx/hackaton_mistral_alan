@@ -34,9 +34,11 @@ export default function AudioRecorder() {
       const formData = new FormData();
       formData.append("file", audioBlob, "audio.wav"); // Name the file
 
-      const response = await fetch("http://127.0.0.1:5000/transcribe/", {
+
+      const response = await fetch("http://localhost:8080/transcribe", {
         method: "POST",
         body: formData,
+        mode: "no-cors"
       });
 
       if (!response.ok) {
@@ -44,6 +46,10 @@ export default function AudioRecorder() {
       }
 
       const result = await response.json();
+
+      console.log("result");
+      console.log(result);
+
       setTranscript(result.transcription); // Set the received transcription
     } catch (error) {
       console.error("Error uploading file:", error);
