@@ -34,7 +34,7 @@ export default function AudioRecorder() {
       const formData = new FormData();
       formData.append("file", audioBlob, "audio.wav"); // Name the file
 
-      const response = await fetch("http://127.0.0.1:8000/transcribe/", {
+      const response = await fetch("http://127.0.0.1:5000/transcribe/", {
         method: "POST",
         body: formData,
       });
