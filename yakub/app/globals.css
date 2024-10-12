@@ -76,3 +76,21 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes recording {
+  0%, 100% { height: 20%; }
+  50% { height: 100%; }
+}
+
+.animate-recording {
+  animation: recording 1s ease-in-out infinite;
+}
+
+@keyframes playing {
+  0%, 100% { height: 30%; }
+  50% { height: 100%; }
+}
+
+.animate-playing {
+  animation: playing 0.5s ease-in-out infinite;
+}

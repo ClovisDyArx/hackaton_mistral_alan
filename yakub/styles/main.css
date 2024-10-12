@@ -1,0 +1,15 @@
+/* Add light blue background to main content area */
+.main-content {
+  background-color: #e6f3ff; /* Light blue */
+}
+
+/* Add light green accents to buttons or interactive elements */
+.button, .interactive-element {
+  background-color: #e6ffe6; /* Light green */
+  border: 1px solid #99cc99; /* Darker green border for contrast */
+}
+
+/* Add contrasting text color for better readability */
+body {
+  color: #333333; /* Dark gray text for contrast against light backgrounds */
+}
