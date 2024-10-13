@@ -83,13 +83,36 @@ export default function SubmitPage() {
         }
 
         const result = await response.json();
+        console.log(result);
+
+        // Parse the JSON-like transcription content
+        let parsedTranscription;
+        try {
+          parsedTranscription = JSON.parse(result.transcription.replace(/```json\n|```/g, ''));
+        } catch (e) {
+          console.error("Error parsing transcription:", e);
+          parsedTranscription = { summary: "Error parsing summary", symptoms: [] };
+        }
+
+        const summary = parsedTranscription.summary || "No summary available";
+        const symptoms = parsedTranscription.symptoms || [];
+
+        const analysis = `${summary}\n\nSymptoms:\n` +
+            symptoms.map(symptom =>
+                `  - ${symptom.symptom}: Intensity ${symptom.intensity}, Still Present: ${symptom.is_gone ? "No" : "Yes"}`
+            ).join("\n");
+
+        const symptomsText = symptoms ? `\nSymptoms: ${symptoms}` : '';
+
+        const recommendation = `${result.predictions}`;
+
         setMode("report");
         setReport({
           patientName: "John Doe",
           recordingDate: new Date().toISOString(),
           duration: "2:30",
-          analysis: result.transcription,
-          recommendation: result.predictions,
+          analysis: analysis,
+          recommendation: recommendation,
         });
       } catch (error) {
         console.error("Error uploading file:", error);

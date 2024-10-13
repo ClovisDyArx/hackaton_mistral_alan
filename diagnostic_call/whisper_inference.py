@@ -45,36 +45,26 @@ model_mistral.load_lora("/home/admin/mistral-finetune/run_dir/checkpoints/checkp
 
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
-    print("Received audio file")
 
-    # Create a temporary file to save the uploaded audio
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmpfile:
         tmpfile.write(await file.read())
         tmpfile_path = tmpfile.name
 
-    # Use Whisper model to transcribe the audio
     result = model.transcribe(tmpfile_path)
 
-    # Clean up temporary file
     os.remove(tmpfile_path)
 
     whisper_output = result['text']
-    print(f"Whisper output: {whisper_output}")
 
-    # Use Gemini to extract data with efficiency
     result = gem_model.generate_content(gem_prompt + whisper_output)
     gemini_output = result.text
-    print(f"Gemini output: {gemini_output}")
 
-    # Use Mistral fine-tuned model to get the possible diseases
     completion_request = ChatCompletionRequest(messages=[UserMessage(content=gemini_output)])
     tokens = tokenizer.encode_chat_completion(completion_request).tokens
 
     out_tokens, _ = generate([tokens], model_mistral, max_tokens=256, temperature=0.3, eos_id=tokenizer.instruct_tokenizer.tokenizer.eos_id)
     mistral_output = tokenizer.instruct_tokenizer.tokenizer.decode(out_tokens[0])
-    print(f"Mistral output: {mistral_output}")
 
-    # Return the transcription
     return {"transcription": gemini_output, "predictions": mistral_output}
 
 @app.get("/hello")
