@@ -97,12 +97,10 @@ export default function SubmitPage() {
         const summary = parsedTranscription.summary || "No summary available";
         const symptoms = parsedTranscription.symptoms || [];
 
-        const analysis = `${summary}\n\nSymptoms:\n` +
+        const analysis = symptoms !== [] ? `${summary}` + `\nSymptoms:\n` +
             symptoms.map(symptom =>
-                `  - ${symptom.symptom}: Intensity ${symptom.intensity}, Still Present: ${symptom.is_gone ? "No" : "Yes"}`
-            ).join("\n");
-
-        const symptomsText = symptoms ? `\nSymptoms: ${symptoms}` : '';
+                ` - ${symptom.symptom}`
+            ).join("\n") : `${summary}`;
 
         const recommendation = `${result.predictions}`;
 
