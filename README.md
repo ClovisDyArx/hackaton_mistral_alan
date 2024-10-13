@@ -46,7 +46,7 @@ By automating the initial assessment process, the app allows users to get timely
 ## Architecture
 1. **Frontend**: Developed with Next.js and shadcn-ui, allowing users to record their symptoms and receive real-time feedback.
 2. **Backend**: Built using FastAPI, it processes audio input through Whisper for transcription and utilizes the Gemini and Mistral models for symptom extraction and diagnosis.
-3. **AI Models**: 
+3. **AI Models**:
    - **Whisper** for transcription.
    - **Gemini** for symptom and sentiment extraction.
    - **Mistral** for condition prediction based on symptoms.
