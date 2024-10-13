@@ -93,6 +93,7 @@ By automating the initial assessment process, the app allows users to get timely
 3. The app will transcribe your input and extract symptoms and conditions.
 4. Verify the extracted symptoms.
 5. Receive recommendations for further medical action or connect to a healthcare provider.
+
 ![patient_interface](images/patient_interface.png)
 
 ## Doctor side usage
