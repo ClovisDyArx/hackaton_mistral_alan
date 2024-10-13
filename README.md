@@ -1,7 +1,7 @@
-# ***Hygie.ia - Your intermediary to ease up interactions between People and Healthcare***
+# ***Hygie.ia - Your intermediary to ease up interactions between people and healthcare***
 
 ## Overview
-The **Healthcare Intermediary App** is an AI-powered platform that serves as a bridge between individuals and healthcare services. It leverages natural language processing (NLP) to extract symptoms and other relevant information from user input, provides an initial assessment of possible conditions, and routes users to the appropriate healthcare service. Users can describe their symptoms as they would when speaking to a doctor, and the app ensures accurate communication of their needs to the right medical service.
+The **Hygie.ia App** is an AI-powered platform that serves as a bridge between individuals and healthcare services.
 
 ## Table of Contents
 - [Motivation](#motivation)
@@ -19,16 +19,20 @@ The app aims to address common challenges in accessing healthcare, such as:
 - **Long waiting times** for initial assessments, especially during peak hours.
 - **Limited access** to healthcare services in remote or underserved areas.
 - **Scalability issues** in telehealth services that require human doctors for each interaction.
+- **Improve Health Datasets** : our application offers the possibility to create anonymized data that can help improve our models.
+- **Pre-diagnostic** can help pinpoints sicknesses more efficiently without the need to get a professional.
+- **Data Privacy and long term prediction model** using reinforcement learning methods over the anonimyzed collected data.
 
 By automating the initial assessment process, the app allows users to get timely insights into their condition and access the right care faster.
 
 ## Features
+- **Speech-to-text**: Transcribes the call into text for further processing.
 - **NLP-Based Symptom Extraction**: Automatically identifies and extracts symptoms from user input.
 - **Sentiment Analysis**: Analyzes the urgency and context of the patient's descriptions.
 - **Condition Assessment**: Suggests potential conditions based on symptoms.
 - **Verification Step**: Allows users to verify the extracted symptoms to ensure accuracy.
 - **Service Recommendation**: Routes users to the appropriate healthcare service or specialist based on the confirmed symptoms.
-- **Data Privacy**: Ensures compliance with data protection regulations (e.g., GDPR, HIPAA).
+- **Data Privacy**: Ensures compliance with data protection regulations.
 
 ## Technologies Used
 - **Python**: Backend and AI model implementation.
@@ -38,7 +42,6 @@ By automating the initial assessment process, the app allows users to get timely
 - **Mistral Model**: For predicting potential conditions based on extracted information.
 - **Next.js**: Frontend framework for the user interface.
 - **Shadcn-ui**: UI components for a seamless user experience.
-- **Docker**: Containerization for easy deployment.
 
 ## Architecture
 1. **Frontend**: Developed with Next.js and shadcn-ui, allowing users to record their symptoms and receive real-time feedback.
@@ -59,24 +62,18 @@ By automating the initial assessment process, the app allows users to get timely
 ### Installation
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/healthcare-intermediary-app.git
-   cd healthcare-intermediary-app
+   git git@github.com:ClovisDyArx/hackaton_mistral_alan.git
+   cd hackaton_mistral_alan
    ```
 
 2. **Backend Setup**
-   - Navigate to the backend directory and create a virtual environment:
-     ```bash
-     cd backend
-     python -m venv env
-     source env/bin/activate  # On Windows: env\Scripts\activate
-     ```
-   - Install dependencies:
+   - Install dependencies: ***TODO***
      ```bash
      pip install -r requirements.txt
      ```
    - Start the FastAPI server:
      ```bash
-     uvicorn main:app --reload --port 5000
+     python diagnostic_call/whisper_inference.py
      ```
 
 3. **Frontend Setup**
@@ -89,15 +86,9 @@ By automating the initial assessment process, the app allows users to get timely
 
 4. **Environment Variables**
    - Create a `.env` file in both the frontend and backend directories with necessary API keys and configurations.
-   
-### Docker (Optional)
-   - To run the entire app using Docker:
-     ```bash
-     docker-compose up --build
-     ```
 
 ## Usage
-1. Open the app in your browser at `http://localhost:3000`.
+1. Open the app in your browser at `http://localhost:3000/patient/submit`.
 2. Record a description of your symptoms using the voice input feature.
 3. The app will transcribe your input and extract symptoms and conditions.
 4. Verify the extracted symptoms.
