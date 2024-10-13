@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Report, Symptom } from "../../types";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const AudioAnimation = ({ isRecording, isPlaying }: { isRecording: boolean; isPlaying: boolean }) => (
   <div className="flex justify-center items-center h-16 w-full">
@@ -26,9 +28,12 @@ export default function SubmitPage() {
   const [isRecording, setIsRecording] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
-  const [report, setReport] = useState<any>(null);
+  const [report, setReport] = useState<Report | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("doctor");
 
   useEffect(() => {
     if (mode === "recording") {
@@ -68,10 +73,11 @@ export default function SubmitPage() {
 
   const sendAudio = async () => {
     if (audioBlob) {
-      // Here you would typically send the audio to your server
+      setIsLoading(true);
       try {
         const formData = new FormData();
-        formData.append("file", audioBlob, "audio.mp3");
+        console.log(selectedOption.toLowerCase());
+        formData.append("file", audioBlob, selectedOption.toLowerCase());
 
         const response = await fetch("http://localhost:8080/transcribe", {
           method: "POST",
@@ -97,132 +103,206 @@ export default function SubmitPage() {
         const summary = parsedTranscription.summary || "No summary available";
         const symptoms = parsedTranscription.symptoms || [];
 
-        const analysis = symptoms !== [] ? `${summary}` + `\nSymptoms:\n` +
-            symptoms.map(symptom =>
-                ` - ${symptom.symptom}`
-            ).join("\n") : `${summary}`;
-
-        const recommendation = `${result.predictions}`;
+        const patient_symptoms: Array<Symptom> = symptoms.map((symptom: any) => ({
+          name: symptom.symptom,
+          intensity: symptom.intensity,
+          is_gone: symptom.is_gone
+        }));
 
         setMode("report");
         setReport({
-          patientName: "John Doe",
-          recordingDate: new Date().toISOString(),
-          duration: "2:30",
-          analysis: analysis,
-          recommendation: recommendation,
+          full_text: result.raw_transcription,
+          summary: summary,
+          patient_symptoms: patient_symptoms,
+          emotion_analysis: result.emotions,
+          predicted_disease: result.predictions,
+          real_symptoms: [],
+          real_disease: "",
+          treament: [],
+          best_service: parsedTranscription.best_service == undefined ? "N/A" : parsedTranscription.best_service
         });
       } catch (error) {
         console.error("Error uploading file:", error);
+      } finally {
+        setIsLoading(false);
       }
-      // For this example, we'll just simulate a response
     }
   };
 
-  if (mode === "report") {
-    return (
+  const handleConfirm = async () => {
+    setIsConfirmed(true);
+    // Here you would typically send the confirmed report to your backend
+    // For example:
+    // await sendReportToBackend(report);
+    console.log("Report confirmed:", report);
+  };
 
-    <div className="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen w-full">
-      <div className="container mx-auto p-6">
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardHeader>
-            <CardTitle>Audio Analysis Report</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-2 gap-4">
-              <div>
-                <dt className="font-medium">Patient Name</dt>
-                <dd>{report.patientName}</dd>
-              </div>
-              <div>
-                <dt className="font-medium">Recording Date</dt>
-                <dd>{new Date(report.recordingDate).toLocaleString()}</dd>
-              </div>
-              <div>
-                <dt className="font-medium">Duration</dt>
-                <dd>{report.duration}</dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="font-medium">Analysis</dt>
-                <dd>{report.analysis}</dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="font-medium">Recommendation</dt>
-                <dd>{report.recommendation}</dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-      </div>
-      </div>
-    );
-  }
+  const handleOptionChange = (option: "doctor" | "hospital") => {
+    setSelectedOption(option);
+  };
 
   return (
-
     <div className="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen w-full">
+      <div className="container mx-auto p-6 flex">
+        {/* Left side - Recording UI */}
+        <div className="w-1/2 pr-3">
+          <Card className="w-full mb-6 bg-red-100 border-red-300">
+            <CardContent className="p-4">
+              <p className="text-red-700 font-bold text-center">
+                WARNING: Do not use this service for medical emergencies. If you are in need of immediate medical assistance, please call your local emergency services immediately.
+              </p>
+            </CardContent>
+          </Card>
 
-    <div className="container mx-auto p-6">
-      <Card className="w-full max-w-md mx-auto mb-6 bg-red-100 border-red-300">
-        <CardContent className="p-4">
-          <p className="text-red-700 font-bold text-center">
-            WARNING: Do not use this service for medical emergencies. If you are experiencing a medical emergency, please call your local emergency services immediately.
-          </p>
-        </CardContent>
-      </Card>
+          <Card className="w-full mb-6">
+            <CardHeader className="mb-6">
+              <CardTitle>Record Your Symptoms</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center space-y-4">
+              <div className="flex space-x-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="doctor"
+                    checked={selectedOption === "doctor"}
+                    onCheckedChange={() => handleOptionChange("doctor")}
+                  />
+                  <label htmlFor="doctor">Doctor</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="hospital"
+                    checked={selectedOption === "hospital"}
+                    onCheckedChange={() => handleOptionChange("hospital")}
+                  />
+                  <label htmlFor="hospital">Hospital</label>
+                </div>
+              </div>
 
+              <AudioAnimation isRecording={isRecording} isPlaying={isPlaying} />
+              <div style={{ width: "1px", height: "6px" }}></div>
+              <div className="flex space-x-2">
+                {!isRecording ? (
+                  <Button
+                    onClick={startRecording}
+                    disabled={isPlaying}
+                  >
+                    Start Recording
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={stopRecording}
+                    variant="destructive"
+                  >
+                    Stop Recording
+                  </Button>
+                )}
+                {audioBlob && (
+                  <>
+                    <Button
+                      onClick={playRecording}
+                      variant="outline"
+                      disabled={isRecording || isPlaying}
+                    >
+                      Play
+                    </Button>
+                    <Button
+                      onClick={sendAudio}
+                      disabled={isRecording || isPlaying}
+                    >
+                      Send
+                    </Button>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle>Record Your Symptoms</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-4">
-          <AudioAnimation isRecording={isRecording} isPlaying={isPlaying} />
-          <div className="flex space-x-2">
-            {!isRecording ? (
-              <Button
-                onClick={startRecording}
-                disabled={isPlaying}
-              >
-                Start Recording
-              </Button>
-            ) : (
-              <Button
-                onClick={stopRecording}
-                variant="destructive"
-              >
-                Stop Recording
-              </Button>
-            )}
-            {audioBlob && (
-              <>
-                <Button
-                  onClick={playRecording}
-                  variant="outline"
-                  disabled={isRecording || isPlaying}
-                >
-                  Play
-                </Button>
-                <Button
-                  onClick={sendAudio}
-                  disabled={isRecording || isPlaying}
-                >
-                  Send
-                </Button>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          <Card className="w-full mt-6 bg-blue-100 border-blue-300">
+            <CardContent className="p-4">
+              <p className="text-blue-700 text-center">
+                Your privacy is important to us. All data submitted through this service is anonymized to protect your personal information.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card className="w-full max-w-md mx-auto mt-6 bg-blue-100 border-blue-300">
-        <CardContent className="p-4">
-          <p className="text-blue-700 text-center">
-            Your privacy is important to us. All data submitted through this service is anonymized to protect your personal information.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        {/* Right side - Report or Waiting message */}
+        <div className="w-1/2 pl-3">
+          <Card className="w-full h-full">
+            <CardHeader>
+              <CardTitle>
+                {mode === "report" ? "Audio Analysis Report" : ""}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {mode === "report" && report ? (
+                <>
+                  <dl className="grid grid-cols-1 gap-4">
+                    <div>
+                      <dt className="font-bold text-lg mb-2">Summary</dt>
+                      <dd className="bg-gray-100 p-3 rounded-md">{report.summary}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold text-lg mb-2">Patient Symptoms</dt>
+                      <dd>
+                        <ul className="list-disc pl-5">
+                          {report.patient_symptoms.map((symptom, index) => (
+                            <li key={index} className="mb-2">
+                              <span className="font-semibold">{symptom.name}</span>
+                              <span className="ml-2">({symptom.is_gone ? 'Resolved' : 'Ongoing'})</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold text-lg mb-2">Best Service</dt>
+                      <dd>{report.best_service}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold text-lg mb-2">Emotion Analysis</dt>
+                      <dd>{report.emotion_analysis}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold text-lg mb-2">Predicted Disease (not shown usually)</dt>
+                      <dd>{report.predicted_disease}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold text-lg mb-2">Full Transcription</dt>
+                      <dd className="bg-gray-100 p-3 rounded-md max-h-40 overflow-y-auto">
+                        {report.full_text}
+                      </dd>
+                    </div>
+                  </dl>
+                  {!isConfirmed && (
+                    <div className="mt-6 flex justify-center">
+                      <Button onClick={handleConfirm}>
+                        Confirm and Submit Report
+                      </Button>
+                    </div>
+                  )}
+                  {isConfirmed && (
+                    <p className="mt-6 text-center text-green-600 font-semibold">
+                      Report confirmed and submitted successfully!
+                    </p>
+                  )}
+                </>
+              ) : isLoading ? (
+                <div className="flex flex-col justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mb-4 m"></div>
+                  <p className="text-center text-gray-600 mt-6">
+                    Processing your audio. This may take a few moments...
+                  </p>
+                </div>
+              ) : (
+                <p className="text-center text-gray-500">
+                  Record and send your audio to generate a report.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

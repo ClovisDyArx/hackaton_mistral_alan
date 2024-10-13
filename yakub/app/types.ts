@@ -20,6 +20,7 @@ type Report = {
   real_symptoms: Array<Symptom>; // real symptoms gotten from medical consultation audio
   real_disease: string; // real disease gotten from medical consultation audio
   treament: Array<Drug>; // treatment given to the patient
+  best_service: string; // best service to use based on the patient's description
 };
 
 type Patient = {
