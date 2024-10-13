@@ -4,6 +4,8 @@ import vertexai  # pip install vertexai
 from vertexai.generative_models import GenerativeModel
 import uvicorn
 import whisper
+from transformers import pipeline
+
 import os
 import tempfile
 from gemini_prompt import gem_prompt
@@ -28,6 +30,61 @@ app.add_middleware(
 
 # Load Whisper model
 model = whisper.load_model("large")
+
+sentiment_analysis = pipeline(
+    "sentiment-analysis",
+    framework="pt",
+    model="SamLowe/roberta-base-go_emotions",
+    device=0
+)
+
+def analyze_sentiment(text):
+    results = sentiment_analysis(text)
+    sentiment_results = {
+        result["label"]: result["score"] for result in results
+    }
+    return sentiment_results
+
+def get_sentiment_emoji(sentiment):
+    # Define the mapping of sentiments to emojis
+    emoji_mapping = {
+        "disappointment": "😞",
+        "sadness": "😢",
+        "annoyance": "😠",
+        "neutral": "😐",
+        "disapproval": "👎",
+        "realization": "😮",
+        "nervousness": "😬",
+        "approval": "👍",
+        "joy": "😄",
+        "anger": "😡",
+        "embarrassment": "😳",
+        "caring": "🤗",
+        "remorse": "😔",
+        "disgust": "🤢",
+        "grief": "😥",
+        "confusion": "😕",
+        "relief": "😌",
+        "desire": "😍",
+        "admiration": "😌",
+        "optimism": "😊",
+        "fear": "😨",
+        "love": "❤️",
+        "excitement": "🎉",
+        "curiosity": "🤔",
+        "amusement": "😄",
+        "surprise": "😲",
+        "gratitude": "🙏",
+        "pride": "🦁"
+    }
+    return emoji_mapping.get(sentiment, "")
+
+def display_sentiment_results(sentiment_results):
+    sentiment_text = ""
+    for sentiment, score in sentiment_results.items():
+        emoji = get_sentiment_emoji(sentiment)
+        sentiment_text += f"{sentiment} {emoji}: {round(score, 4) * 100}%\n"
+    return sentiment_text
 
 # Load Gemini
 PROJECT_ID = "mistral-alan-hack24par-807"
@@ -54,6 +111,13 @@ async def transcribe_audio(file: UploadFile = File(...)):
 
     # Use Whisper model to transcribe the audio
     result = model.transcribe(tmpfile_path)
+    whisper_output = result['text']
+    print(f"Whisper output: {whisper_output}")
+
+    # Emotions detection
+    sentiment_results = analyze_sentiment(whisper_output)
+    sentiment_output = display_sentiment_results(sentiment_results)
+    print(f"Whisper emotions output: {sentiment_results}: {sentiment_output}")
 
     # Clean up temporary file
     os.remove(tmpfile_path)
