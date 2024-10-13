@@ -29,6 +29,7 @@ export default function SubmitPage() {
   const [report, setReport] = useState<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (mode === "recording") {
@@ -68,7 +69,7 @@ export default function SubmitPage() {
 
   const sendAudio = async () => {
     if (audioBlob) {
-      // Here you would typically send the audio to your server
+      setIsLoading(true);
       try {
         const formData = new FormData();
         formData.append("file", audioBlob, "audio.mp3");
@@ -93,115 +94,123 @@ export default function SubmitPage() {
         });
       } catch (error) {
         console.error("Error uploading file:", error);
+      } finally {
+        setIsLoading(false);
       }
-      // For this example, we'll just simulate a response
     }
   };
 
-  if (mode === "report") {
-    return (
-
-    <div className="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen w-full">
-      <div className="container mx-auto p-6">
-        <Card className="w-full max-w-3xl mx-auto">
-          <CardHeader>
-            <CardTitle>Audio Analysis Report</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid grid-cols-2 gap-4">
-              <div>
-                <dt className="font-medium">Patient Name</dt>
-                <dd>{report.patientName}</dd>
-              </div>
-              <div>
-                <dt className="font-medium">Recording Date</dt>
-                <dd>{new Date(report.recordingDate).toLocaleString()}</dd>
-              </div>
-              <div>
-                <dt className="font-medium">Duration</dt>
-                <dd>{report.duration}</dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="font-medium">Analysis</dt>
-                <dd>{report.analysis}</dd>
-              </div>
-              <div className="col-span-2">
-                <dt className="font-medium">Recommendation</dt>
-                <dd>{report.recommendation}</dd>
-              </div>
-            </dl>
-          </CardContent>
-        </Card>
-      </div>
-      </div>
-    );
-  }
-
   return (
-
     <div className="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen w-full">
+      <div className="container mx-auto p-6 flex">
+        {/* Left side - Recording UI */}
+        <div className="w-1/2 pr-3">
+          <Card className="w-full mb-6 bg-red-100 border-red-300">
+            <CardContent className="p-4">
+              <p className="text-red-700 font-bold text-center">
+                WARNING: Do not use this service for medical emergencies. If you are in need of immediate medical assistance, please call your local emergency services immediately.
+              </p>
+            </CardContent>
+          </Card>
 
-    <div className="container mx-auto p-6">
-      <Card className="w-full max-w-md mx-auto mb-6 bg-red-100 border-red-300">
-        <CardContent className="p-4">
-          <p className="text-red-700 font-bold text-center">
-            WARNING: Do not use this service for medical emergencies. If you are experiencing a medical emergency, please call your local emergency services immediately.
-          </p>
-        </CardContent>
-      </Card>
+          <Card className="w-full">
+            <CardHeader className="mb-6">
+              <CardTitle>Record Your Symptoms</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center space-y-4">
+              <AudioAnimation isRecording={isRecording} isPlaying={isPlaying} />
+              <div style={{ width: "1px", height: "6px" }}></div>
+              <div className="flex space-x-2">
+                {!isRecording ? (
+                  <Button
+                    onClick={startRecording}
+                    disabled={isPlaying}
+                  >
+                    Start Recording
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={stopRecording}
+                    variant="destructive"
+                  >
+                    Stop Recording
+                  </Button>
+                )}
+                {audioBlob && (
+                  <>
+                    <Button
+                      onClick={playRecording}
+                      variant="outline"
+                      disabled={isRecording || isPlaying}
+                    >
+                      Play
+                    </Button>
+                    <Button
+                      onClick={sendAudio}
+                      disabled={isRecording || isPlaying}
+                    >
+                      Send
+                    </Button>
+                  </>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
+          <Card className="w-full mt-6 bg-blue-100 border-blue-300">
+            <CardContent className="p-4">
+              <p className="text-blue-700 text-center">
+                Your privacy is important to us. All data submitted through this service is anonymized to protect your personal information.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
 
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle>Record Your Symptoms</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center space-y-4">
-          <AudioAnimation isRecording={isRecording} isPlaying={isPlaying} />
-          <div className="flex space-x-2">
-            {!isRecording ? (
-              <Button
-                onClick={startRecording}
-                disabled={isPlaying}
-              >
-                Start Recording
-              </Button>
-            ) : (
-              <Button
-                onClick={stopRecording}
-                variant="destructive"
-              >
-                Stop Recording
-              </Button>
-            )}
-            {audioBlob && (
-              <>
-                <Button
-                  onClick={playRecording}
-                  variant="outline"
-                  disabled={isRecording || isPlaying}
-                >
-                  Play
-                </Button>
-                <Button
-                  onClick={sendAudio}
-                  disabled={isRecording || isPlaying}
-                >
-                  Send
-                </Button>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full max-w-md mx-auto mt-6 bg-blue-100 border-blue-300">
-        <CardContent className="p-4">
-          <p className="text-blue-700 text-center">
-            Your privacy is important to us. All data submitted through this service is anonymized to protect your personal information.
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        {/* Right side - Report or Waiting message */}
+        <div className="w-1/2 pl-3">
+          <Card className="w-full h-full">
+            <CardHeader>
+              <CardTitle>
+                {mode === "report" ? "Audio Analysis Report" : ""}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {mode === "report" ? (
+                <dl className="grid grid-cols-2 gap-4">
+                  <div>
+                    <dt className="font-medium">Patient Name</dt>
+                    <dd>{report.patientName}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium">Recording Date</dt>
+                    <dd>{new Date(report.recordingDate).toLocaleString()}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-medium">Duration</dt>
+                    <dd>{report.duration}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="font-medium">Analysis</dt>
+                    <dd>{report.analysis}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="font-medium">Recommendation</dt>
+                    <dd>{report.recommendation}</dd>
+                  </div>
+                </dl>
+              ) : isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <p className="text-center text-gray-500">
+                  Record and send your audio to generate a report.
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
