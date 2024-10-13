@@ -75,11 +75,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
     print(f"Mistral output: {mistral_output}")
 
     # Return the transcription
-    return {"transcription": gemini_output, "predictions": mistral_output}
-
-@app.get("/hello")
-def hello():
-    return {"message": "Hello World"}
+    return {"raw_transcription": whisper_output, "transcription": gemini_output, "predictions": mistral_output}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
