@@ -8,13 +8,13 @@ from transformers import pipeline
 
 import os
 import tempfile
-from gemini_prompt import gem_prompt
+from gemini_prompt import gem_prompt_hospital, gem_prompt_doctor, mist_prompt
 
 from mistral_inference.transformer import Transformer
 from mistral_inference.generate import generate
 
 from mistral_common.tokens.tokenizers.mistral import MistralTokenizer
-from mistral_common.protocol.instruct.messages import UserMessage
+from mistral_common.protocol.instruct.messages import UserMessage, AssistantMessage
 from mistral_common.protocol.instruct.request import ChatCompletionRequest
 
 app = FastAPI()
@@ -99,6 +99,12 @@ tokenizer = MistralTokenizer.from_file("/home/admin/mistral_models/tekken.json")
 model_mistral = Transformer.from_folder("/home/admin/mistral_models")
 model_mistral.load_lora("/home/admin/mistral-finetune/run_dir/checkpoints/checkpoint_000300/consolidated/lora.safetensors")
 
+def get_prompt(request_type, whisper_prompt):
+    if request_type == "hospital":
+        return gem_prompt_hospital + whisper_prompt
+    else:
+        return gem_prompt_doctor + whisper_prompt
+
 
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
@@ -126,12 +132,12 @@ async def transcribe_audio(file: UploadFile = File(...)):
     print(f"Whisper output: {whisper_output}")
 
     # Use Gemini to extract data with efficiency
-    result = gem_model.generate_content(gem_prompt + whisper_output)
+    result = gem_model.generate_content(get_prompt(file.filename, whisper_output))
     gemini_output = result.text
     print(f"Gemini output: {gemini_output}")
 
     # Use Mistral fine-tuned model to get the possible diseases
-    completion_request = ChatCompletionRequest(messages=[UserMessage(content=gemini_output)])
+    completion_request = ChatCompletionRequest(messages=[AssistantMessage(content=mist_prompt), UserMessage(content=gemini_output)])
     tokens = tokenizer.encode_chat_completion(completion_request).tokens
 
     out_tokens, _ = generate([tokens], model_mistral, max_tokens=256, temperature=0.3, eos_id=tokenizer.instruct_tokenizer.tokenizer.eos_id)

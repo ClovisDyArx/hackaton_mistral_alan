@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Report, Symptom } from "../../types";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const AudioAnimation = ({ isRecording, isPlaying }: { isRecording: boolean; isPlaying: boolean }) => (
   <div className="flex justify-center items-center h-16 w-full">
@@ -32,6 +33,7 @@ export default function SubmitPage() {
   const audioChunksRef = useRef<Blob[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("doctor");
 
   useEffect(() => {
     if (mode === "recording") {
@@ -74,7 +76,8 @@ export default function SubmitPage() {
       setIsLoading(true);
       try {
         const formData = new FormData();
-        formData.append("file", audioBlob, "audio.mp3");
+        console.log(selectedOption.toLowerCase());
+        formData.append("file", audioBlob, selectedOption.toLowerCase());
 
         const response = await fetch("http://localhost:8080/transcribe", {
           method: "POST",
@@ -111,11 +114,12 @@ export default function SubmitPage() {
           full_text: result.raw_transcription,
           summary: summary,
           patient_symptoms: patient_symptoms,
-          emotion_analysis: parsedTranscription.emotions,
+          emotion_analysis: result.emotions,
           predicted_disease: result.predictions,
           real_symptoms: [],
           real_disease: "",
           treament: [],
+          best_service: parsedTranscription.best_service == undefined ? "N/A" : parsedTranscription.best_service
         });
       } catch (error) {
         console.error("Error uploading file:", error);
@@ -133,6 +137,10 @@ export default function SubmitPage() {
     console.log("Report confirmed:", report);
   };
 
+  const handleOptionChange = (option: "doctor" | "hospital") => {
+    setSelectedOption(option);
+  };
+
   return (
     <div className="bg-gradient-to-br from-blue-50 to-green-50 min-h-screen w-full">
       <div className="container mx-auto p-6 flex">
@@ -146,11 +154,30 @@ export default function SubmitPage() {
             </CardContent>
           </Card>
 
-          <Card className="w-full">
+          <Card className="w-full mb-6">
             <CardHeader className="mb-6">
               <CardTitle>Record Your Symptoms</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col items-center space-y-4">
+              <div className="flex space-x-4 mb-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="doctor"
+                    checked={selectedOption === "doctor"}
+                    onCheckedChange={() => handleOptionChange("doctor")}
+                  />
+                  <label htmlFor="doctor">Doctor</label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="hospital"
+                    checked={selectedOption === "hospital"}
+                    onCheckedChange={() => handleOptionChange("hospital")}
+                  />
+                  <label htmlFor="hospital">Hospital</label>
+                </div>
+              </div>
+              
               <AudioAnimation isRecording={isRecording} isPlaying={isPlaying} />
               <div style={{ width: "1px", height: "6px" }}></div>
               <div className="flex space-x-2">
@@ -227,6 +254,10 @@ export default function SubmitPage() {
                           ))}
                         </ul>
                       </dd>
+                    </div>
+                    <div>
+                      <dt className="font-bold text-lg mb-2">Best Service</dt>
+                      <dd>{report.best_service}</dd>
                     </div>
                     <div>
                       <dt className="font-bold text-lg mb-2">Emotion Analysis</dt>
