@@ -8,6 +8,13 @@ import os
 import tempfile
 from gemini_prompt import gem_prompt
 
+from mistral_inference.transformer import Transformer
+from mistral_inference.generate import generate
+
+from mistral_common.tokens.tokenizers.mistral import MistralTokenizer
+from mistral_common.protocol.instruct.messages import UserMessage
+from mistral_common.protocol.instruct.request import ChatCompletionRequest
+
 app = FastAPI()
 
 # Update CORS settings
@@ -30,6 +37,12 @@ os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/home/admin/.config/gcloud/appli
 vertexai.init(project=PROJECT_ID, location="europe-west9")
 gem_model = GenerativeModel(MODEL)
 
+# Load mistral fine-tuned
+tokenizer = MistralTokenizer.from_file("/home/admin/mistral_models/tekken.json")
+model_mistral = Transformer.from_folder("/home/admin/mistral_models")
+model_mistral.load_lora("/home/admin/mistral-finetune/run_dir/checkpoints/checkpoint_000300/consolidated/lora.safetensors")
+
+
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
     print("Received audio file")
@@ -45,11 +58,24 @@ async def transcribe_audio(file: UploadFile = File(...)):
     # Clean up temporary file
     os.remove(tmpfile_path)
 
-    print(result['text'])
-    response = gem_model.generate_content(gem_prompt + result['text'])
-    print(f"response: {type(response.text)}, {response.text}")
+    whisper_output = result['text']
+    print(f"Whisper output: {whisper_output}")
+
+    # Use Gemini to extract data with efficiency
+    result = gem_model.generate_content(gem_prompt + whisper_output)
+    gemini_output = result.text
+    print(f"Gemini output: {gemini_output}")
+
+    # Use Mistral fine-tuned model to get the possible diseases
+    completion_request = ChatCompletionRequest(messages=[UserMessage(content=gemini_output)])
+    tokens = tokenizer.encode_chat_completion(completion_request).tokens
+
+    out_tokens, _ = generate([tokens], model_mistral, max_tokens=256, temperature=0.3, eos_id=tokenizer.instruct_tokenizer.tokenizer.eos_id)
+    mistral_output = tokenizer.instruct_tokenizer.tokenizer.decode(out_tokens[0])
+    print(f"Mistral output: {mistral_output}")
+
     # Return the transcription
-    return {"transcription": response.text}
+    return {"transcription": gemini_output, "predictions": mistral_output}
 
 @app.get("/hello")
 def hello():

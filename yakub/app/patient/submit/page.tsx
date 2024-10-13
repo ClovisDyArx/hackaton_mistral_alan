@@ -12,7 +12,7 @@ const AudioAnimation = ({ isRecording, isPlaying }: { isRecording: boolean; isPl
         className={`h-full w-2 bg-primary mx-1 rounded-full ${
           isRecording ? 'animate-recording' : isPlaying ? 'animate-playing' : ''
         }`}
-        style={{ 
+        style={{
           animationDelay: `${i * 0.15}s`,
           animationDuration: isPlaying ? '0.5s' : '1s'
         }}
@@ -69,15 +69,32 @@ export default function SubmitPage() {
   const sendAudio = async () => {
     if (audioBlob) {
       // Here you would typically send the audio to your server
+      try {
+        const formData = new FormData();
+        formData.append("file", audioBlob, "audio.mp3");
+
+        const response = await fetch("http://localhost:8080/transcribe", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        setMode("report");
+        setReport({
+          patientName: "John Doe",
+          recordingDate: new Date().toISOString(),
+          duration: "2:30",
+          analysis: result.transcription,
+          recommendation: result.predictions,
+        });
+      } catch (error) {
+        console.error("Error uploading file:", error);
+      }
       // For this example, we'll just simulate a response
-      setMode("report");
-      setReport({
-        patientName: "John Doe",
-        recordingDate: new Date().toISOString(),
-        duration: "2:30",
-        analysis: "Patient describes symptoms of common cold.",
-        recommendation: "Rest and hydration recommended. Follow up if symptoms persist.",
-      });
     }
   };
 
@@ -142,15 +159,15 @@ export default function SubmitPage() {
           <AudioAnimation isRecording={isRecording} isPlaying={isPlaying} />
           <div className="flex space-x-2">
             {!isRecording ? (
-              <Button 
-                onClick={startRecording} 
+              <Button
+                onClick={startRecording}
                 disabled={isPlaying}
               >
                 Start Recording
               </Button>
             ) : (
-              <Button 
-                onClick={stopRecording} 
+              <Button
+                onClick={stopRecording}
                 variant="destructive"
               >
                 Stop Recording
@@ -158,15 +175,15 @@ export default function SubmitPage() {
             )}
             {audioBlob && (
               <>
-                <Button 
-                  onClick={playRecording} 
-                  variant="outline" 
+                <Button
+                  onClick={playRecording}
+                  variant="outline"
                   disabled={isRecording || isPlaying}
                 >
                   Play
                 </Button>
-                <Button 
-                  onClick={sendAudio} 
+                <Button
+                  onClick={sendAudio}
                   disabled={isRecording || isPlaying}
                 >
                   Send
