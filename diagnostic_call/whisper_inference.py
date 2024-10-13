@@ -83,7 +83,7 @@ def display_sentiment_results(sentiment_results):
     sentiment_text = ""
     for sentiment, score in sentiment_results.items():
         emoji = get_sentiment_emoji(sentiment)
-        sentiment_text += f"{sentiment} {emoji}: {round(score, 4) * 100}%\n"
+        sentiment_text += f"{sentiment} {emoji}\n"
     return sentiment_text
 
 # Load Gemini
@@ -139,7 +139,7 @@ async def transcribe_audio(file: UploadFile = File(...)):
     print(f"Mistral output: {mistral_output}")
 
     # Return the transcription
-    return {"raw_transcription": whisper_output, "transcription": gemini_output, "predictions": mistral_output}
+    return {"raw_transcription": whisper_output, "transcription": gemini_output, "predictions": mistral_output, "emotions": sentiment_output}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)

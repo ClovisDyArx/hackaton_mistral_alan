@@ -111,7 +111,7 @@ export default function SubmitPage() {
           full_text: result.raw_transcription,
           summary: summary,
           patient_symptoms: patient_symptoms,
-          emotion_analysis: "TO_BE_DEFINED",
+          emotion_analysis: parsedTranscription.emotions,
           predicted_disease: result.predictions,
           real_symptoms: [],
           real_disease: "",
@@ -228,12 +228,10 @@ export default function SubmitPage() {
                         </ul>
                       </dd>
                     </div>
-                    {
-                    /*<div>
+                    <div>
                       <dt className="font-bold text-lg mb-2">Emotion Analysis</dt>
                       <dd>{report.emotion_analysis}</dd>
-                    </div>*/
-                    }
+                    </div>
                     <div>
                       <dt className="font-bold text-lg mb-2">Predicted Disease (not shown usually)</dt>
                       <dd>{report.predicted_disease}</dd>
