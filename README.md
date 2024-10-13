@@ -93,7 +93,10 @@ By automating the initial assessment process, the app allows users to get timely
 3. The app will transcribe your input and extract symptoms and conditions.
 4. Verify the extracted symptoms.
 5. Receive recommendations for further medical action or connect to a healthcare provider.
+![patient_interface](images/patient_interface.png)
 
+## Doctor side usage
+![patient_interface](images/doctor_interface.png)
 ## Example Workflow
 1. A user describes symptoms like "I've been feeling feverish with a sore throat."
 2. The app transcribes the audio and extracts symptoms such as "fever" and "sore throat."
