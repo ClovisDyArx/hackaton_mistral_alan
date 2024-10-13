@@ -3,17 +3,9 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-
-type Report = {
-  id: string;
-  date: string;
-  patientName: string;
-  type: string;
-  doctor: string;
-  summary: string;
-};
+import exampleReports from "@/app/examples/reports";
+import { Report } from "@/app/types";
 
 type Patient = {
   id: string;
@@ -27,26 +19,6 @@ type Patient = {
   medications: string[];
   medicalHistory: string;
 };
-
-const mockReports: Report[] = [
-  {
-    id: "1",
-    date: "2024-03-19",
-    patientName: "John Doe",
-    type: "Blood Test",
-    doctor: "Dr. Smith",
-    summary: "Normal blood count, slightly elevated cholesterol.",
-  },
-  {
-    id: "2",
-    date: "2024-03-20",
-    patientName: "Jane Smith",
-    type: "X-Ray",
-    doctor: "Dr. Johnson",
-    summary: "No fractures detected, mild joint inflammation.",
-  },
-  // ... add more mock reports with the new fields ...
-];
 
 const mockPatients: { [key: string]: Patient } = {
   "1": {
@@ -70,114 +42,133 @@ export default function ReportsPage() {
 
   const handleReportClick = (report: Report) => {
     setSelectedReport(report);
-    setSelectedPatient(mockPatients[report.id]);
+    // For now, we'll just use the first mock patient
+    setSelectedPatient(mockPatients["1"]);
   };
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-blue-50 to-green-50">
-      <div className="w-1/3 p-4 border-r">
-        <h2 className="text-2xl font-semibold mb-4">Reports</h2>
+      <div className="w-1/2 p-4 border-r">
+        <h2 className="text-3xl font-semibold mb-4">Upcoming reports</h2>
         <ScrollArea className="h-[calc(100vh-8rem)]">
           <div className="space-y-4">
-            {mockReports
-              .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-              .map((report) => (
-                <Card
-                  key={report.id}
-                  className="cursor-pointer hover:bg-blue-100"
-                  onClick={() => handleReportClick(report)}
-                >
-                  <CardHeader>
-                    <CardTitle>{report.type}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p><strong>Date:</strong> {report.date}</p>
-                    <p><strong>Patient:</strong> {report.patientName}</p>
-                    <p><strong>Doctor:</strong> {report.doctor}</p>
-                    <p><strong>Summary:</strong> {report.summary}</p>
-                  </CardContent>
-                </Card>
-              ))}
+            {exampleReports.map((report, index) => (
+              <Card
+                key={index}
+                className="cursor-pointer hover:bg-blue-100"
+                onClick={() => handleReportClick(report)}
+              >
+                <CardHeader>
+                  <CardTitle>{report.predicted_disease}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p><strong>Summary:</strong> {report.summary}</p>
+                  <p><strong>Emotion:</strong> {report.emotion_analysis}</p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </ScrollArea>
       </div>
       <div className="w-2/3 p-4">
-        {selectedReport && (
-          <Card className="w-full mb-4">
-            <CardHeader>
-              <CardTitle>Selected Report</CardTitle>
-            </CardHeader>
+        {selectedReport ? (
+          <>
+            <Card className="w-full mb-4">
+              <CardHeader>
+                <CardTitle className="text-2xl">Selected Report</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <dl className="grid grid-cols-2 gap-4">
+                  <div className="col-span-2">
+                    <dt className="font-semibold">Full Text</dt>
+                    <dd>{selectedReport.full_text}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold">Predicted Disease</dt>
+                    <dd>{selectedReport.predicted_disease}</dd>
+                  </div>
+                  <div>
+                    <dt className="font-semibold">Real Disease</dt>
+                    <dd>{selectedReport.real_disease}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="font-semibold">Patient Symptoms</dt>
+                    <dd>{selectedReport.patient_symptoms.map(s => `${s.name} (${s.intensity})`).join(", ")}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="font-semibold">Real Symptoms</dt>
+                    <dd>{selectedReport.real_symptoms.map(s => `${s.name} (${s.intensity})`).join(", ")}</dd>
+                  </div>
+                  <div className="col-span-2">
+                    <dt className="font-semibold">Treatment</dt>
+                    <dd>{selectedReport.treament.map(t => `${t.name} (${t.quantity} ${t.frequency}x${t.time})`).join(", ")}</dd>
+                  </div>
+                </dl>
+                <Button className="mt-4">View Full Report</Button>
+              </CardContent>
+            </Card>
+            {selectedPatient ? (
+              <Card className="w-full">
+                <CardHeader>
+                  <CardTitle>Patient Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="grid grid-cols-2 gap-4">
+                    <div>
+                      <dt className="font-semibold">Name</dt>
+                      <dd>{selectedPatient.name}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold">Age</dt>
+                      <dd>{selectedPatient.age}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold">Gender</dt>
+                      <dd>{selectedPatient.gender}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold">Blood Type</dt>
+                      <dd>{selectedPatient.bloodType}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold">Height</dt>
+                      <dd>{selectedPatient.height}</dd>
+                    </div>
+                    <div>
+                      <dt className="font-semibold">Weight</dt>
+                      <dd>{selectedPatient.weight}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="font-semibold">Allergies</dt>
+                      <dd>{selectedPatient.allergies.join(", ")}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="font-semibold">Medications</dt>
+                      <dd>{selectedPatient.medications.join(", ")}</dd>
+                    </div>
+                    <div className="col-span-2">
+                      <dt className="font-semibold">Medical History</dt>
+                      <dd>{selectedPatient.medicalHistory}</dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="w-full flex items-center justify-center pt-6">
+                <CardContent>
+                  <p className="text-gray-500 text-center">
+                    No patient information available.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </>
+        ) : (
+          <Card className="w-full h-full flex items-center justify-center">
             <CardContent>
-              <dl className="grid grid-cols-2 gap-4">
-                <div>
-                  <dt className="font-semibold">Date</dt>
-                  <dd>{selectedReport.date}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Type</dt>
-                  <dd>{selectedReport.type}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Patient</dt>
-                  <dd>{selectedReport.patientName}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Doctor</dt>
-                  <dd>{selectedReport.doctor}</dd>
-                </div>
-                <div className="col-span-2">
-                  <dt className="font-semibold">Summary</dt>
-                  <dd>{selectedReport.summary}</dd>
-                </div>
-              </dl>
-              <Button className="mt-4">View Full Report</Button>
-            </CardContent>
-          </Card>
-        )}
-        {selectedPatient && (
-          <Card className="w-full">
-            <CardHeader>
-              <CardTitle>Patient Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <dl className="grid grid-cols-2 gap-4">
-                <div>
-                  <dt className="font-semibold">Name</dt>
-                  <dd>{selectedPatient.name}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Age</dt>
-                  <dd>{selectedPatient.age}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Gender</dt>
-                  <dd>{selectedPatient.gender}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Blood Type</dt>
-                  <dd>{selectedPatient.bloodType}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Height</dt>
-                  <dd>{selectedPatient.height}</dd>
-                </div>
-                <div>
-                  <dt className="font-semibold">Weight</dt>
-                  <dd>{selectedPatient.weight}</dd>
-                </div>
-                <div className="col-span-2">
-                  <dt className="font-semibold">Allergies</dt>
-                  <dd>{selectedPatient.allergies.join(", ")}</dd>
-                </div>
-                <div className="col-span-2">
-                  <dt className="font-semibold">Medications</dt>
-                  <dd>{selectedPatient.medications.join(", ")}</dd>
-                </div>
-                <div className="col-span-2">
-                  <dt className="font-semibold">Medical History</dt>
-                  <dd>{selectedPatient.medicalHistory}</dd>
-                </div>
-              </dl>
+              <p className="text-xl text-gray-500">
+                Please select a report from the list to view details.
+              </p>
             </CardContent>
           </Card>
         )}
