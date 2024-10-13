@@ -40,13 +40,13 @@ export default function PatientLayout({
           </div>
           <div className="flex items-center space-x-4">
             <Button variant="ghost" asChild className="font-geist-sans text-base font-medium">
-              <Link href="/patient/submit">Next appointments</Link>
+              <Link href="/doctor/appointments">Next appointments</Link>
             </Button>
             <Button variant="ghost" asChild className="font-geist-sans text-base font-medium">
-              <Link href="/patient/care-guide">Reports</Link>
+              <Link href="/doctor/reports">Reports</Link>
             </Button>
             <Button variant="ghost" asChild className="p-0">
-              <Link href="/patient/profile">
+              <Link href="/doctor/profile">
                 <Avatar>
                   <AvatarImage src="/avatar-placeholder.png" alt="User" />
                   <AvatarFallback>JD</AvatarFallback>
