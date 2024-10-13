@@ -96,7 +96,7 @@ By automating the initial assessment process, the app allows users to get timely
 
 ![patient_interface](images/patient_interface.png)
 
-## Doctor side usage
+### Doctor side example
 ![patient_interface](images/doctor_interface.png)
 ## Example Workflow
 1. A user describes symptoms like "I've been feeling feverish with a sore throat."
